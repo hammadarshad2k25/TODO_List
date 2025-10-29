@@ -1,0 +1,8 @@
+# Ignore build and user files
+bin/
+obj/
+.vs/
+*.user
+*.db
+*.log
+.env
