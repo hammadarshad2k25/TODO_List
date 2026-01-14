@@ -1,0 +1,42 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <title>SignalR Test</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.0/signalr.min.js"></script>
+</head>
+<body>
+    <h2>SignalR Live Notification Test</h2>
+    <button id="connectBtn">Connect to Hub</button>
+    <h3>Messages:</h3>
+    <div id="messages" style="border:1px solid #ccc; padding:10px; width:400px; height:250px; overflow:auto;"></div>
+    <script>let connection = new signalR.HubConnectionBuilder()
+    .withUrl("https://localhost:7054/taskHub")  
+            .configureLogging(signalR.LogLevel.Information)
+            .build();
+        document.getElementById("connectBtn").onclick = async () => {
+            try {
+                await connection.start();
+                addMessage("Connected to SignalR Hub!");
+            } catch (err) {
+                addMessage("Connection Error: " + err);
+            }
+        };
+        connection.on("TaskCreated", function (data) {
+            addMessage("TaskCreated Event Received:");
+            addMessage(JSON.stringify(data));
+        });
+        connection.on("TaskUpdated", function (data) {
+            addMessage("TaskUpdated Event Received:");
+            addMessage(JSON.stringify(data));
+        });
+        connection.on("TaskDeleted", function (data) {
+            addMessage("TaskDeleted Event Received:");
+            addMessage(JSON.stringify(data));
+        });
+        function addMessage(msg) {
+            const messagesDiv = document.getElementById("messages");
+            messagesDiv.innerHTML += msg + "<br>";
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        }</script>
+</body>
+</html>

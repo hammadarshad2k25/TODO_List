@@ -1,0 +1,37 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<hibernate-configuration xmlns="urn:nhibernate-configuration-2.2">
+	<session-factory>
+
+		<!-- Correct SQL Server Driver -->
+		<property name="connection.driver_class">
+			NHibernate.Driver.SqlClientDriver
+		</property>
+
+		<!-- Provider (keep same) -->
+		<property name="connection.provider">
+			NHibernate.Connection.DriverConnectionProvider
+		</property>
+
+		<!-- Dialect -->
+		<property name="dialect">
+			NHibernate.Dialect.MsSql2012Dialect
+		</property>
+
+		<!-- Connection String -->
+		<property name="connection.connection_string">
+			Data Source=HAMMAD;
+			Initial Catalog=TODOListDB;
+			Integrated Security=True;
+		</property>
+
+		<!-- Show SQL in output -->
+		<property name="show_sql">true</property>
+
+		<!-- Auto create/update database schema -->
+		<property name="hbm2ddl.auto">update</property>
+
+		<!-- Load all mappings from the assembly -->
+		<mapping assembly="TODO_List" />
+
+	</session-factory>
+</hibernate-configuration>

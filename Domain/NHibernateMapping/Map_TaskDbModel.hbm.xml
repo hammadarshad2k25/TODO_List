@@ -1,0 +1,25 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<hibernate-mapping xmlns="urn:nhibernate-mapping-2.2"
+                   assembly="TODO_List"
+                   namespace="TODO_List.Domain.Model">
+
+	<class name="NH_TaskDbModel" table="NH_Tasks">
+
+		<id name="TaskId" column="TaskId">
+			<generator class="assigned" />
+		</id>
+
+		<property name="TitleName" column="TitleName" />
+		<property name="IsCompleted" column="IsCompleted" />
+
+		<bag name="SubTasks"
+			 table="NH_SubTasks"
+			 cascade="all"
+			 inverse="true"
+			 lazy="false">
+			<key column="TaskId" />
+			<one-to-many class="TODO_List.Domain.Model.NH_SubTaskDbModel" />
+		</bag>
+		
+	</class>
+</hibernate-mapping>
