@@ -2,6 +2,8 @@
 using System.Threading.Tasks;
 using TODO_List.Domain.Entities;
 using TODO_List.Infrastructure.Storage;
+using HotChocolate;
+using HotChocolate.Types;
 
 namespace TODO_List.API.GraphQL
 {

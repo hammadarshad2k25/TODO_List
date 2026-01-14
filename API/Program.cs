@@ -36,14 +36,14 @@ using TODO_List.Alerts;
 // ----------------------------
 var emailOptions = new EmailSinkOptions
 {
-    From = "dnet25822@gmail.com",
-    To = new List<string> { "hammad.ar999@gmail.com" },
+    From = Environment.GetEnvironmentVariable("EMAIL_FROM") ?? "dnet25822@gmail.com",
+    To = new List<string> { Environment.GetEnvironmentVariable("EMAIL_TO") ?? "hammad.ar999@gmail.com" },
     Host = "smtp.gmail.com",
     Port = 587,
     Credentials = new NetworkCredential
     (
-        "dnet25822@gmail.com",
-        "bbtxrkdmpxwulkxm" 
+        Environment.GetEnvironmentVariable("EMAIL_FROM") ?? "dnet25822@gmail.com",
+        Environment.GetEnvironmentVariable("EMAIL_PASSWORD") ?? "bbtxrkdmpxwulkxm"
     ),
     IsBodyHtml = false,
     Subject = new MessageTemplateTextFormatter
@@ -74,16 +74,17 @@ Log.Logger = new LoggerConfiguration()
     .Enrich.WithMachineName()
     .Enrich.WithThreadId()
     .WriteTo.Console()
-    .WriteTo.Elasticsearch(new ElasticsearchSinkOptions(new Uri("https://localhost:9200"))
-    {
-        AutoRegisterTemplate = true,
-        IndexFormat = "todolist-api-logs-{0:yyyy.MM.dd}",
-        TypeName = null,
-        MinimumLogEventLevel = LogEventLevel.Information,
-        ModifyConnectionSettings = conn =>
-            conn.BasicAuthentication("elastic", "jTe9Uryfg9rW4unvKk=h")
-                .ServerCertificateValidationCallback((o, c, ch, e) => true)
-    })
+    //.WriteTo.Elasticsearch(new ElasticsearchSinkOptions(new Uri("https://localhost:9200"))
+    //{
+    //    AutoRegisterTemplate = true,
+    //    IndexFormat = "todolist-api-logs-{0:yyyy.MM.dd}",
+    //    TypeName = null,
+    //    MinimumLogEventLevel = LogEventLevel.Information,
+    //    ModifyConnectionSettings = conn =>
+    //        conn.BasicAuthentication(Environment.GetEnvironmentVariable("ELASTIC_USER") ?? "elastic",
+    //                                 Environment.GetEnvironmentVariable("ELASTIC_PASSWORD") ?? "password")
+    //            .ServerCertificateValidationCallback((o, c, ch, e) => true)
+    //})
     .WriteTo.Email(
         emailOptions,
         restrictedToMinimumLevel: LogEventLevel.Error
@@ -94,7 +95,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Host.UseSerilog();
 
 // Initialize RepoDb for SQL Server
-GlobalConfiguration.Setup().UseSqlServer(); 
+GlobalConfiguration.Setup().UseSqlServer();
 
 // --------------------------------------------------
 // FASTENDPOINTS (FE + Controllers)
@@ -114,8 +115,8 @@ builder.Services.SwaggerDocument(options =>
             Description = "Enter: Bearer {Paste Token Here}"
         });
     };
-});                  // FE Swagger ONLY for FastEndpoints;           
-builder.Services.AddEndpointsApiExplorer();   // FE API Explorer
+});
+builder.Services.AddEndpointsApiExplorer();
 
 // --------------------------------------------------
 // CONTROLLERS + SWAGGERGEN (Swashbuckle)
@@ -152,42 +153,26 @@ builder.Services.AddSwaggerGen(options =>
 });
 
 // --------------------------------------------------
-// Microsoft Logging
-// --------------------------------------------------
-//builder.Logging.ClearProviders();
-//builder.Logging.AddConsole();
-//builder.Logging.AddDebug();
-//builder.Logging.SetMinimumLevel(LogLevel.Information);
-
-// --------------------------------------------------
-// Output Cache
+// Output Cache + Response Cache
 // --------------------------------------------------
 builder.Services.AddOutputCache(options =>
 {
     options.DefaultExpirationTimeSpan = TimeSpan.FromSeconds(60);
 });
-
-// --------------------------------------------------
-// Response Cache
-// --------------------------------------------------
-
 builder.Services.AddResponseCaching();
 
 // --------------------------------------------------
-// Sql DATABASE
+// SQL DATABASE
 // --------------------------------------------------
-var connection = builder.Configuration.GetConnectionString("DefaultConnection");
+var connection = Environment.GetEnvironmentVariable("CONNECTION_STRING") ?? builder.Configuration.GetConnectionString("DefaultConnection");
 builder.Services.AddDbContext<TodoDbContext>(opts =>
-    opts.UseSqlServer(connection));
+    opts.UseNpgsql(connection));
 
 // Enable IDbConnection injection (for Dapper)
-builder.Services.AddScoped<IDbConnection>(sp => new Microsoft.Data.SqlClient.SqlConnection(builder.Configuration.GetConnectionString("DefaultConnection")));
+builder.Services.AddScoped<IDbConnection>(sp => new Microsoft.Data.SqlClient.SqlConnection(connection));
 
 // NHibernate
-builder.Services.AddSingleton<ISessionFactory>(provider => 
-{
-    return NH_Helper.fact;
-});
+builder.Services.AddSingleton<ISessionFactory>(provider => NH_Helper.fact);
 builder.Services.AddScoped<NHibernate.ISession>(provider =>
 {
     var sf = provider.GetService<ISessionFactory>();
@@ -236,9 +221,9 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidateAudience = true,
             ValidateLifetime = true,
             ValidateIssuerSigningKey = true,
-            ValidIssuer = jwt["Issuer"],
-            ValidAudience = jwt["Audience"],
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwt["Key"])),
+            ValidIssuer = Environment.GetEnvironmentVariable("JWT_ISSUER") ?? jwt["Issuer"],
+            ValidAudience = Environment.GetEnvironmentVariable("JWT_AUDIENCE") ?? jwt["Audience"],
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Environment.GetEnvironmentVariable("JWT_KEY") ?? jwt["Key"])),
             ClockSkew = TimeSpan.Zero,
             RoleClaimType = ClaimTypes.Role,
             NameClaimType = ClaimTypes.Name
@@ -249,77 +234,59 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 // SignalR
 // --------------------------------------------------
 builder.Services.AddSignalR();
-builder.Services.AddSignalR().AddStackExchangeRedis("localhost:6379", options =>
-{
-    options.Configuration.ChannelPrefix = "TodoList";      
-});
+//builder.Services.AddSignalR().AddStackExchangeRedis(Environment.GetEnvironmentVariable("REDIS_CONNECTION") ?? "localhost:6379", options =>
+//{
+//    options.Configuration.ChannelPrefix = "TodoList";      
+//});
 
 // --------------------------------------------------
 // Aws Credentials for DynamoDB
 // --------------------------------------------------
 builder.Services.AddSingleton<IAmazonDynamoDB>(_ =>
 {
-    var config = new AmazonDynamoDBConfig
-    {
-        ServiceURL = "http://localhost:8000",
-        UseHttp = true,
-        AuthenticationRegion = "us-east-1"
-    };
+    // LOCAL OR TEST DYNAMO (COMMENTED FOR RAILWAY)
+    // var config = new AmazonDynamoDBConfig
+    // {
+    //     ServiceURL = "http://localhost:8000",
+    //     UseHttp = true,
+    //     AuthenticationRegion = "us-east-1"
+    // };
+    // return new AmazonDynamoDBClient(new BasicAWSCredentials("dummy", "dummy"), config);
 
-    return new AmazonDynamoDBClient(
-        new BasicAWSCredentials("dummy", "dummy"),
-        config
-    );
+    // PRODUCTION RAILWAY ENV VARS CAN GO HERE
+    return null!;
 });
 
-// --------------------------------------------------
-// Register DynamoDBContext
-// --------------------------------------------------
-
-builder.Services.AddScoped<IDynamoDBContext>(provider =>
-{
-    var client = provider.GetRequiredService<IAmazonDynamoDB>();
-    var config = new DynamoDBContextConfig
-    {
-        DisableFetchingTableMetadata = true
-    };
-    return new DynamoDBContext(client, config);
-});
+//builder.Services.AddScoped<IDynamoDBContext>(provider =>
+//{
+//    var client = provider.GetRequiredService<IAmazonDynamoDB>();
+//    var config = new DynamoDBContextConfig { DisableFetchingTableMetadata = true };
+//    return new DynamoDBContext(client, config);
+//});
 
 // --------------------------------------------------
 // Azure Credentials for CosmosDB
 // --------------------------------------------------
-
-builder.Services.AddSingleton(s =>
-{
-    string endpointuri = "https://localhost:8081";
-    string primarykey = "C2y6yDjf5/R+ob0N8A7Cgv30VRDJIWEHLM+4QDU5DE2nQ9nDuVTqobD4b8mGGyPMbIZnqyMsEcaGQy67XIw/Jw==";
-    return new CosmosClient(endpointuri, primarykey);
-});
+//builder.Services.AddSingleton(s =>
+//{
+//    string endpointuri = Environment.GetEnvironmentVariable("COSMOS_ENDPOINT") ?? "https://localhost:8081";
+//    string primarykey = Environment.GetEnvironmentVariable("COSMOS_KEY") ?? "your-primary-key";
+//    return new CosmosClient(endpointuri, primarykey);
+//});
 
 var app = builder.Build();
+
 // --------------------------------------------------
 // PIPELINE
 // --------------------------------------------------
 app.UseHttpsRedirection();
-
-//GlobalExceptionMiddleware
 app.UseMiddleware<GlobalExceptionMiddleware>();
-
-//RequestLoggingMiddleware
 app.UseMiddleware<RequestLogingMiddleware>();
-
-//Response Cache
 app.UseResponseCaching();
-
-// Authentication + Authorization should come BEFORE FastEndpoints
 app.UseAuthentication();
 app.UseAuthorization();
-
-// Output Cache
 app.UseOutputCache();
 
-// FastEndpoints Middleware
 app.UseFastEndpoints(c =>
 {
     c.Errors.ResponseBuilder = (failures, ctx, statuscode) =>
@@ -333,23 +300,16 @@ app.UseFastEndpoints(c =>
     };
 });
 
-// FastEndpoints Swagger
 app.UseSwaggerGen();
-
-// Controllers Swagger
 app.UseSwagger();
 app.UseSwaggerUI(c =>
 {
     c.SwaggerEndpoint("/swagger/v1/swagger.json", "TODO_List API V1 (Controllers)");
 });
 
-// Controller Endpoints
 app.MapControllers();
-
-// GraphQL Endpoint
 app.MapGraphQL("/graphql");
 
-// Utility Endpoints
 app.MapGet("/ping", () => "Welcome to TODO API!");
 app.MapGet("/testdb", async (TodoDbContext db) =>
 {
@@ -357,25 +317,14 @@ app.MapGet("/testdb", async (TodoDbContext db) =>
     return Results.Ok("Database OK");
 });
 
-//using (var scope = app.Services.CreateScope())
-//{
-//    var dynamoClient = scope.ServiceProvider.GetRequiredService<IAmazonDynamoDB>();
-//    Console.WriteLine("Creating DynamoDB table...");
-//    await DynamoDBStore.CreateTodoTableAsync(dynamoClient);
-//    Console.WriteLine("Table creation finished");
-//}
+//app.UseStaticFiles();
+//app.MapHub<TaskHub>("/taskHub");
 
-// --------------------------------------------------
-// Setup for CosmosDB
-// --------------------------------------------------
-//var cosmosclient = app.Services.GetRequiredService<CosmosClient>();
-//var database = await cosmosclient.CreateDatabaseIfNotExistsAsync("TodoListDB");
-//var container = await database.Database.CreateContainerIfNotExistsAsync(id: "Tasks", partitionKeyPath: "/UserId", throughput: 400);
-
-app.UseStaticFiles();
-
-// SignalR Hubs
-app.MapHub<TaskHub>("/taskHub");
+// ----------------------------
+// Dynamic port support for Railway
+// ----------------------------
+var port = Environment.GetEnvironmentVariable("PORT") ?? "5000";
+app.Urls.Add($"http://*:{port}");
 
 Serilog.Debugging.SelfLog.Enable(Console.Error);
 
