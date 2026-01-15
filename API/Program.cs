@@ -15,7 +15,7 @@ using TODO_List.Application.DependencyInjection;
 using TODO_List.Infrastructure.NhibernateConfig;
 using TODO_List.Infrastructure.Storage;
 using TODO_List.API.Hubs;
-using TODO_List.Infrastructure.Services;
+//using TODO_List.Infrastructure.Services;
 using Amazon;
 using Amazon.DynamoDBv2;
 using Amazon.Runtime;
