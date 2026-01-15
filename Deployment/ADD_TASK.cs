@@ -6,7 +6,7 @@ using TODO_List.Application.Interfaces;
 using TODO_List.Application.ValidatorFastEndpoint;
 using TODO_List.Domain.Entities;
 using TODO_List.Domain.Model;
-using TODO_List.Infrastructure.Services;
+//using TODO_List.Infrastructure.Services;
 using TODO_List.Infrastructure.Storage;
 
 namespace TODO_List.Deployment
@@ -15,13 +15,13 @@ namespace TODO_List.Deployment
     {
         private readonly TodoDbContext _db;
         private readonly IRedisService _redis;
-        private readonly ElasticService _elastic;
+        //private readonly ElasticService _elastic;
         private readonly ILogger<ADD_TASK> _logger;
-        public ADD_TASK(TodoDbContext db, IRedisService redis, ElasticService elastic, ILogger<ADD_TASK> logger)
+        public ADD_TASK(TodoDbContext db, IRedisService redis, /*ElasticService elastic*/ ILogger<ADD_TASK> logger)
         {
             _db = db;
             _redis = redis;
-            _elastic = elastic;
+            //_elastic = elastic;
             _logger = logger;
         }
         public override void Configure()
@@ -63,15 +63,15 @@ namespace TODO_List.Deployment
             };
             try
             {
-                await _elastic.IndexOneTaskAsync(new ElasticIndexModel
-                {
-                    Id = req.tid.ToString(),
-                    Title = req.tname,
-                    Description = req.Description,
-                    Tags = req.Tags,
-                    CreatedAt = DateTime.UtcNow,
-                    IsCompleted = req.tisCompleted
-                });
+                //await _elastic.IndexOneTaskAsync(new ElasticIndexModel
+                //{
+                //    Id = req.tid.ToString(),
+                //    Title = req.tname,
+                //    Description = req.Description,
+                //    Tags = req.Tags,
+                //    CreatedAt = DateTime.UtcNow,
+                //    IsCompleted = req.tisCompleted
+                //});
             }
             catch (Exception ex)
             {

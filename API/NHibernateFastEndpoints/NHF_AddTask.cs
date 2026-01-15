@@ -4,7 +4,7 @@ using TODO_List.Application.ValidatorFastEndpoint;
 using TODO_List.Application.DTO;
 using TODO_List.Domain.Model;
 using TODO_List.Application.Interfaces;
-using TODO_List.Infrastructure.Services;
+//using TODO_List.Infrastructure.Services;
 
 namespace TODO_List.API.NHibernateFastEndpoints
 {
@@ -12,12 +12,12 @@ namespace TODO_List.API.NHibernateFastEndpoints
     {
         private readonly NHibernate.ISession _session;
         private readonly IRedisService _redis;
-        private readonly ElasticService _elastic;
-        public NHF_AddTask(NHibernate.ISession session, IRedisService redis, ElasticService elastic)
+        //private readonly ElasticService _elastic;
+        public NHF_AddTask(NHibernate.ISession session, IRedisService redis/*, ElasticService elastic*/)
         {
             _session = session;
             _redis = redis;
-            _elastic = elastic;
+            //_elastic = elastic;
         }
         public override void Configure()
         {
@@ -58,15 +58,15 @@ namespace TODO_List.API.NHibernateFastEndpoints
                     SubTaskName = st.SubTaskName
                 }).ToList()
             };
-            await _elastic.IndexOneTaskAsync(new ElasticIndexModel
-            {
-                Id = req.tid.ToString(),
-                Title = req.tname,
-                Tags = req.Tags,
-                Description = req.Description,
-                CreatedAt = DateTime.UtcNow,
-                IsCompleted = req.tisCompleted
-            });
+            //await _elastic.IndexOneTaskAsync(new ElasticIndexModel
+            //{
+            //    Id = req.tid.ToString(),
+            //    Title = req.tname,
+            //    Tags = req.Tags,
+            //    Description = req.Description,
+            //    CreatedAt = DateTime.UtcNow,
+            //    IsCompleted = req.tisCompleted
+            //});
             await _redis.SetAsync($"nh_task:{response.TaskId}", response, TimeSpan.FromMinutes(20));
             HttpContext.Response.StatusCode = StatusCodes.Status201Created;
             await HttpContext.Response.WriteAsJsonAsync(response, cancellationToken: ct);

@@ -8,7 +8,7 @@ using TODO_List.Application.Interfaces;
 using TODO_List.Application.ValidatorFastEndpoint;
 using TODO_List.Domain.Entities;
 using TODO_List.Domain.Model;
-using TODO_List.Infrastructure.Services;
+//using TODO_List.Infrastructure.Services;
 using TODO_List.Infrastructure.Storage;
 
 namespace TODO_List.Deployment
@@ -17,14 +17,14 @@ namespace TODO_List.Deployment
     {
         private readonly TodoDbContext _db;
         private readonly IRedisService _redis;
-        private readonly ElasticService _service;
+        //private readonly ElasticService _service;
         private readonly IOutputCacheStore _cachestore;
         private readonly ILogger<UPDATE_TASK> _logger;
-        public UPDATE_TASK(TodoDbContext db, IRedisService redis, ElasticService service, IOutputCacheStore cachestore, ILogger<UPDATE_TASK> logger)
+        public UPDATE_TASK(TodoDbContext db, IRedisService redis, /*ElasticService service,*/ IOutputCacheStore cachestore, ILogger<UPDATE_TASK> logger)
         {
             _db = db;
             _redis = redis;
-            _service = service;
+            //_service = service;
             _cachestore = cachestore;
             _logger = logger;
         }
@@ -85,15 +85,15 @@ namespace TODO_List.Deployment
             _logger.LogInformation("SubTasks Updates Successfully. TaskId={TaskId}, Count={Count}", id, task.SubTasks.Count);
             try
             {
-                await _service.IndexOneTaskAsync(new ElasticIndexModel
-                {
-                    Id = id.ToString(),
-                    Title = req.tname,
-                    Description = req.Description,
-                    Tags = req.Tags,
-                    CreatedAt = DateTime.UtcNow,
-                    IsCompleted = req.tisCompleted
-                });
+                //await _service.IndexOneTaskAsync(new ElasticIndexModel
+                //{
+                //    Id = id.ToString(),
+                //    Title = req.tname,
+                //    Description = req.Description,
+                //    Tags = req.Tags,
+                //    CreatedAt = DateTime.UtcNow,
+                //    IsCompleted = req.tisCompleted
+                //});
             }
             catch (Exception ex)
             {

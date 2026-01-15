@@ -8,7 +8,7 @@ using TODO_List.Domain.Entities;
 using TODO_List.Application.Interfaces;
 using Microsoft.AspNetCore.SignalR;
 using TODO_List.API.Hubs;
-using TODO_List.Infrastructure.Services;
+//using TODO_List.Infrastructure.Services;
 using TODO_List.Domain.Model;
 
 namespace TODO_List.API.RepoDbEndpoints
@@ -18,13 +18,13 @@ namespace TODO_List.API.RepoDbEndpoints
         private readonly IDbConnection _db;
         private readonly IRedisService _redis;
         private readonly IHubContext<TaskHub> _hub;
-        private readonly ElasticService _elastic;
-        public AddTaskRepoDb(IDbConnection db, IRedisService redis, IHubContext<TaskHub> hub, ElasticService elastic)
+        //private readonly ElasticService _elastic;
+        public AddTaskRepoDb(IDbConnection db, IRedisService redis, IHubContext<TaskHub> hub/*, ElasticService elastic*/)
         {
             _db = db;
             _redis = redis;
             _hub = hub;
-            _elastic = elastic;
+            //_elastic = elastic;
         }
         public override void Configure()
         {
@@ -68,15 +68,15 @@ namespace TODO_List.API.RepoDbEndpoints
                 TisCompleted  = task.IsCompleted,
                 subTasks = subtasklist
             };
-            await _elastic.IndexOneTaskAsync(new ElasticIndexModel
-            {
-                Id = req.tid.ToString(),
-                Title = req.tname,
-                Description = req.Description,
-                Tags = req.Tags,
-                CreatedAt = DateTime.UtcNow,
-                IsCompleted = req.tisCompleted
-            });
+            //await _elastic.IndexOneTaskAsync(new ElasticIndexModel
+            //{
+            //    Id = req.tid.ToString(),
+            //    Title = req.tname,
+            //    Description = req.Description,
+            //    Tags = req.Tags,
+            //    CreatedAt = DateTime.UtcNow,
+            //    IsCompleted = req.tisCompleted
+            //});
             var cachekey = $"repodb_task:{task.TaskId}";
             await _redis.SetAsync(cachekey, response, TimeSpan.FromMinutes(20));
             await _hub.Clients.All.SendAsync("TaskCreated", response, ct);

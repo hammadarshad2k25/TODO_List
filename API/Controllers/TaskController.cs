@@ -7,7 +7,7 @@ using TODO_List.Application.DTO;
 using TODO_List.Application.Interfaces;
 using TODO_List.Domain.Entities;
 using TODO_List.Domain.Model;
-using TODO_List.Infrastructure.Services;
+//using TODO_List.Infrastructure.Services;
 
 namespace TODO_List.API.Controllers
 {
@@ -17,12 +17,12 @@ namespace TODO_List.API.Controllers
     {
         private readonly ITaskRepo _taskrepo;
         private readonly IRedisService _redis;
-        private readonly ElasticService _elastic;
-        public TaskController(ITaskRepo taskrepo, IRedisService redis, ElasticService elastic)
+        //private readonly ElasticService _elastic;
+        public TaskController(ITaskRepo taskrepo, IRedisService redis/*, ElasticService elastic*/)
         {
             _taskrepo = taskrepo;
             _redis = redis;
-            _elastic = elastic;
+            //_elastic = elastic;
         }
         [Authorize(Roles = "Admin")]
         [HttpPost("AddTask")]
@@ -68,20 +68,20 @@ namespace TODO_List.API.Controllers
             await _redis.SetAsync(cachekey,task, TimeSpan.FromMinutes(20));
             return Ok(task);
         }
-        [HttpGet("ElasticSearch")]
-        public async Task<IActionResult> ElasticSearch(string keyword, [FromServices] ElasticService es)
-        {
-            var result = await es.Client.SearchAsync<TaskModelDTO>(s => s
-                .Index("todos")
-                .Query(q => q
-                    .Match(m => m
-                        .Field(f => f.Tname) 
-                        .Query(keyword)
-                    )
-                )
-            );
-            return Ok(result.Documents);
-        }
+        //[HttpGet("ElasticSearch")]
+        //public async Task<IActionResult> ElasticSearch(string keyword, [FromServices] ElasticService es)
+        //{
+        //    var result = await es.Client.SearchAsync<TaskModelDTO>(s => s
+        //        .Index("todos")
+        //        .Query(q => q
+        //            .Match(m => m
+        //                .Field(f => f.Tname) 
+        //                .Query(keyword)
+        //            )
+        //        )
+        //    );
+        //    return Ok(result.Documents);
+        //}
         [Authorize(Roles = "Admin")]
         [HttpPut("UpdateTaskById/{TaskID}")]
         public async Task<ActionResult<TaskModelDTO>> UpdateTaskById([FromRoute] int TaskID, [FromBody] TodoModel task)
