@@ -4,11 +4,11 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace TODO_List.Domain.Entities
 {
-    [Map("Tasks")]
+    //[Map("Tasks")]
     public class TaskDbModel
     {
-        [Key]
-        [DatabaseGenerated(DatabaseGeneratedOption.None)]
+        //[Key]
+        //[DatabaseGenerated(DatabaseGeneratedOption.None)]
         public int TaskId { get; set; }  
         public string TitleName { get; set; } = "";
         public bool IsCompleted { get; set; }

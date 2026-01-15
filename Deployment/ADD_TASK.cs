@@ -37,19 +37,16 @@ namespace TODO_List.Deployment
             _logger.LogInformation("AddTask request started. TaskId={TaskId}, UserId={UserId}", req.tid, userId);
             var task = new TaskDbModel
             {
-                TaskId = req.tid,
                 TitleName = req.tname,
                 IsCompleted = req.tisCompleted,
                 SubTasks = req.subTasks?.Select(st => new SubTaskDbModel
                 {
-                    SubTaskId = st.subTaskId,
-                    SubTaskName = st.subTaskName,
-                    TaskId = req.tid
+                    SubTaskName = st.subTaskName
                 }).ToList() ?? new List<SubTaskDbModel>()
             };
             _db.Tasks.Add(task);
             await _db.SaveChangesAsync(ct);
-            _logger.LogInformation("Task saved in SQL Server. TaskId={TaskId}", req.tid);
+            _logger.LogInformation("Task saved in PostgreSQL. TaskId={TaskId}", req.tid);
             var response = new TaskModelDTO
             {
                 Tid = task.TaskId,
@@ -77,7 +74,7 @@ namespace TODO_List.Deployment
             {
                 _logger.LogWarning(ex, "Task Failed To indexed in Elasticsearch. TaskId={TaskId}", req.tid);
             }
-            _logger.LogInformation("Task indexed in Elasticsearch. TaskId={TaskId}", req.tid);
+            //_logger.LogInformation("Task indexed in Elasticsearch. TaskId={TaskId}", req.tid);
             try
             {
                 //await _redis.SetAsync($"task:{response.Tid}", response, TimeSpan.FromMinutes(20));
@@ -86,7 +83,7 @@ namespace TODO_List.Deployment
             {
                 _logger.LogWarning(ex, "Task Failed cached in Redis. CacheKey={CacheKey}", response.Tid);
             }
-            _logger.LogInformation("Task cached in Redis. CacheKey={CacheKey}", response.Tid);
+            //_logger.LogInformation("Task cached in Redis. CacheKey={CacheKey}", response.Tid);
             HttpContext.Response.StatusCode = StatusCodes.Status201Created;
             _logger.LogInformation("AddTask completed successfully. TaskId={TaskId}", req.tid);
             await HttpContext.Response.WriteAsJsonAsync(response, cancellationToken: ct);

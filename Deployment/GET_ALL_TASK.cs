@@ -64,7 +64,7 @@ namespace TODO_List.Deployment
                     subTaskName = st.SubTaskName
                 }).ToList()
             }).ToListAsync(ct);
-            _logger.LogInformation("Tasks loaded from SQL Server. Count={Count}, Total={Total}", data.Count, total);
+            _logger.LogInformation("Tasks loaded from PostgreSQL. Count={Count}, Total={Total}", data.Count, total);
             var response = new GetAllPaginatedResponse<TaskModelDTO>
             {
                 Items = data,
@@ -73,7 +73,7 @@ namespace TODO_List.Deployment
                 TotalCount = total
             };
             //await _redis.SetAsync(cachekey, response, TimeSpan.FromMinutes(20));
-            _logger.LogInformation("SQL response cached. CacheKey={CacheKey}", cachekey);
+            //_logger.LogInformation("SQL response cached. CacheKey={CacheKey}", cachekey);
             _logger.LogInformation("GetAllTask completed successfully. Page={Page}", req.page);
             await HttpContext.Response.WriteAsJsonAsync(response, cancellationToken: ct);
         }

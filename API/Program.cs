@@ -96,7 +96,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Host.UseSerilog();
 
 // Initialize RepoDb for SQL Server
-GlobalConfiguration.Setup().UseSqlServer();
+//GlobalConfiguration.Setup().UseSqlServer();
 
 // --------------------------------------------------
 // FASTENDPOINTS (FE + Controllers)
@@ -165,12 +165,19 @@ builder.Services.AddResponseCaching();
 // --------------------------------------------------
 // postgresql DATABASE
 // --------------------------------------------------
-var connection = Environment.GetEnvironmentVariable("CONNECTION_STRING") ?? builder.Configuration.GetConnectionString("DefaultConnection");
-builder.Services.AddDbContext<TodoDbContext>(opts =>
-    opts.UseNpgsql(connection));
+var connectionString =
+    Environment.GetEnvironmentVariable("DATABASE_URL")
+    ?? builder.Configuration.GetConnectionString("DefaultConnection");
+
+builder.Services.AddDbContext<TodoDbContext>(options =>
+    options.UseNpgsql(connectionString, npgsql =>
+    {
+        npgsql.EnableRetryOnFailure();
+        npgsql.CommandTimeout(30);
+    }));
 
 // Enable IDbConnection injection (for Dapper)
-builder.Services.AddScoped<IDbConnection>(sp => new Microsoft.Data.SqlClient.SqlConnection(connection));
+builder.Services.AddScoped<IDbConnection>(sp => new NpgsqlConnection(connectionString));
 
 // NHibernate
 builder.Services.AddSingleton<ISessionFactory>(provider => NH_Helper.fact);
@@ -280,7 +287,10 @@ var app = builder.Build();
 // --------------------------------------------------
 // PIPELINE
 // --------------------------------------------------
-app.UseHttpsRedirection();
+if(!app.Environment.IsProduction())
+{
+    app.UseHttpsRedirection();
+}
 app.UseMiddleware<GlobalExceptionMiddleware>();
 app.UseMiddleware<RequestLogingMiddleware>();
 app.UseResponseCaching();
@@ -315,14 +325,15 @@ app.MapGraphQL("/graphql");
 app.MapGet("/ping", () => "Welcome to TODO API!");
 app.MapGet("/testdb", async (TodoDbContext db) =>
 {
-    db.Database.EnsureCreated();
+    await db.Database.OpenConnectionAsync();
     return Results.Ok("Database OK");
 });
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<TodoDbContext>();
-    db.Database.EnsureCreated();
+    db.Database.EnsureCreated(); 
 }
+
 //app.UseStaticFiles();
 //app.MapHub<TaskHub>("/taskHub");
 

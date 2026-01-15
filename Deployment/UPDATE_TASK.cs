@@ -52,9 +52,10 @@ namespace TODO_List.Deployment
                 await HttpContext.Response.WriteAsync($"Task not found with the ID {id}", ct);
                 return;
             }
-            await _db.Database.ExecuteSqlRawAsync("EXEC UPDATETASK @TaskId = {0}, @TitleName = {1}, @IsCompleted = {2}", id, req.tname, req.tisCompleted);
-            await _db.Entry(task).ReloadAsync(ct);
-            _logger.LogInformation("Task updated in SQL Server. TaskId={TaskId}", id);
+            task.TitleName = req.tname;
+            task.IsCompleted = req.tisCompleted;
+            await _db.SaveChangesAsync(ct);
+            _logger.LogInformation("Task updated in PostgreSQL. TaskId={TaskId}", id);
             var existSubTask = task.SubTasks.ToList();
             var reqSubTaskIds = req.subTasks.Select(st => st.subTaskId).ToList();
             foreach (var oldSubTask in existSubTask)
@@ -99,7 +100,6 @@ namespace TODO_List.Deployment
             {
                 _logger.LogWarning(ex, "Task Failed To re-indexed in Elasticsearch. TaskId={TaskId}", id);
             }
-            _logger.LogInformation("Task Successfully re-indexed in Elasticsearch. TaskId={TaskId}", id);
             var response = new TaskModelDTO
             {
                 Tid = task.TaskId,
@@ -117,11 +117,11 @@ namespace TODO_List.Deployment
             {
                 //await _redis.SetAsync(cacheKey, response, TimeSpan.FromMinutes(20));
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 _logger.LogWarning(ex, "Cache Failed To refreshed. CacheKey={CacheKey}", cacheKey);
             }
-            _logger.LogInformation("Cache refreshed. CacheKey={CacheKey}", cacheKey);
+            //_logger.LogInformation("Cache refreshed. CacheKey={CacheKey}", cacheKey);
             _logger.LogInformation("UpdateTask completed successfully. TaskId={TaskId}", id);
             await HttpContext.Response.WriteAsJsonAsync(response, cancellationToken: ct);
         }

@@ -54,13 +54,13 @@ namespace TODO_List.Deployment
             var task = await _db.Tasks.Include(st => st.SubTasks).FirstOrDefaultAsync(t => t.TaskId == req.tid, ct);
             if (task == null)
             {
-                _logger.LogWarning("Task not found in SQL Server. TaskId={TaskId}", req.tid);
+                _logger.LogWarning("Task not found in PostgreSQL. TaskId={TaskId}", req.tid);
 
                 HttpContext.Response.StatusCode = StatusCodes.Status404NotFound;
                 await HttpContext.Response.WriteAsync($"No tasks found with ID {req.tid}.", ct);
                 return;
             }
-            _logger.LogInformation("Task found in SQL Server. TaskId={TaskId}", req.tid);
+            _logger.LogInformation("Task found in PostgreSQL. TaskId={TaskId}", req.tid);
             var response = new TaskModelDTO
             {
                 Tid = task.TaskId,
@@ -73,7 +73,7 @@ namespace TODO_List.Deployment
                 }).ToList()
             };
             //await _redis.SetAsync(cacheKey, response, TimeSpan.FromMinutes(20));
-            _logger.LogInformation("Task cached from SQL Server. CacheKey={CacheKey}", cacheKey);
+            //_logger.LogInformation("Task cached from SQL Server. CacheKey={CacheKey}", cacheKey);
             _logger.LogInformation("SearchTask completed successfully. TaskId={TaskId}", req.tid);
             await HttpContext.Response.WriteAsJsonAsync(response, cancellationToken: ct);
         }
