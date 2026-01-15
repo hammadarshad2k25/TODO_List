@@ -306,6 +306,7 @@ app.UseSwagger();
 app.UseSwaggerUI(c =>
 {
     c.SwaggerEndpoint("/swagger/v1/swagger.json", "TODO_List API V1 (Controllers)");
+    c.RoutePrefix = "swagger";
 });
 
 app.MapControllers();
@@ -317,7 +318,11 @@ app.MapGet("/testdb", async (TodoDbContext db) =>
     db.Database.EnsureCreated();
     return Results.Ok("Database OK");
 });
-
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<TodoDbContext>();
+    db.Database.EnsureCreated();
+}
 //app.UseStaticFiles();
 //app.MapHub<TaskHub>("/taskHub");
 
