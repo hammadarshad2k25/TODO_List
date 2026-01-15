@@ -13,13 +13,13 @@ namespace TODO_List.Deployment
     public class DELETE_TASK : Endpoint<DeleteTaskRequest>
     {
         private readonly TodoDbContext _db;
-        private readonly IRedisService _redis;
+        //private readonly IRedisService _redis;
         private readonly IOutputCacheStore _cachestore;
         private readonly ILogger<DELETE_TASK> _logger;
-        public DELETE_TASK(TodoDbContext db, IRedisService redis, IOutputCacheStore cachestore, ILogger<DELETE_TASK> logger)
+        public DELETE_TASK(TodoDbContext db, /*IRedisService redis,*/ IOutputCacheStore cachestore, ILogger<DELETE_TASK> logger)
         {
             _db = db;
-            _redis = redis;
+            //_redis = redis;
             _cachestore = cachestore;
             _logger = logger;
         }
@@ -57,7 +57,7 @@ namespace TODO_List.Deployment
             var cacheKey = $"task:{req.tid}";
             try
             {
-                await _redis.DeleteAsync(cacheKey);
+                //await _redis.DeleteAsync(cacheKey);
             }
             catch(Exception ex)
             {

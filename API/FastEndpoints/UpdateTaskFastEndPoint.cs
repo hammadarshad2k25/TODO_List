@@ -10,7 +10,7 @@
 //using TODO_List.Application.ValidatorFastEndpoint;
 //using TODO_List.Domain.Entities;
 //using TODO_List.Domain.Model;
-//using TODO_List.Infrastructure.Services;
+////using TODO_List.Infrastructure.Services;
 //using TODO_List.Infrastructure.Storage;
 
 //namespace TODO_List.API.FastEndpoints
@@ -18,17 +18,17 @@
 //    public class UpdateTaskFastEndPoint : Endpoint<UpdateTaskRequest>
 //    {
 //        private readonly TodoDbContext _db;
-//        private readonly IRedisService _redis;
-//        private readonly ElasticService _service;
+//        //private readonly IRedisService _redis;
+//        //private readonly ElasticService _service;
 //        private readonly IDynamoDBContext _dynamo;
 //        private readonly Container _contain;
 //        private readonly IOutputCacheStore _cachestore;
 //        private readonly ILogger<UpdateTaskFastEndPoint> _logger;
-//        public UpdateTaskFastEndPoint(TodoDbContext db, IRedisService redis, ElasticService service, IDynamoDBContext dynamo, CosmosClient client, IOutputCacheStore cachestore, ILogger<UpdateTaskFastEndPoint> logger)
+//        public UpdateTaskFastEndPoint(TodoDbContext db/*, IRedisService redis*//*, ElasticService service*/, IDynamoDBContext dynamo, CosmosClient client, IOutputCacheStore cachestore, ILogger<UpdateTaskFastEndPoint> logger)
 //        {
 //            _db = db;
-//            _redis = redis;
-//            _service = service;
+//            //_redis = redis;
+//            //_service = service;
 //            _dynamo = dynamo;
 //            _contain = client.GetDatabase("TodoListDB").GetContainer("Tasks");
 //            _cachestore = cachestore;
@@ -49,7 +49,7 @@
 //        {
 //            int id = Route<int>("id");
 //            var UserId = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? "admin";
-//            _logger.LogInformation("UpdateTask started. TaskId={TaskId}, UserId={UserId}",id, UserId);
+//            _logger.LogInformation("UpdateTask started. TaskId={TaskId}, UserId={UserId}", id, UserId);
 //            var task = await _db.Tasks.Include(st => st.SubTasks).FirstOrDefaultAsync(t => t.TaskId == id, ct);
 //            if (task == null)
 //            {
@@ -72,24 +72,24 @@
 //            }
 //            foreach (var subTask in req.subTasks)
 //            {
-//               var existingSubTask = task.SubTasks.FirstOrDefault(st => st.SubTaskId == subTask.subTaskId);
-//               if (existingSubTask != null)
-//               {
-//                  existingSubTask.SubTaskName = subTask.subTaskName;
-//               }
-//               else
-//               {
-//                  task.SubTasks.Add(new SubTaskDbModel
-//                  {
-//                            SubTaskId = subTask.subTaskId,
-//                            SubTaskName = subTask.subTaskName,
-//                            TaskId = id
-//                  });
-//               }
+//                var existingSubTask = task.SubTasks.FirstOrDefault(st => st.SubTaskId == subTask.subTaskId);
+//                if (existingSubTask != null)
+//                {
+//                    existingSubTask.SubTaskName = subTask.subTaskName;
+//                }
+//                else
+//                {
+//                    task.SubTasks.Add(new SubTaskDbModel
+//                    {
+//                        SubTaskId = subTask.subTaskId,
+//                        SubTaskName = subTask.subTaskName,
+//                        TaskId = id
+//                    });
+//                }
 //            }
 //            await _db.SaveChangesAsync(ct);
 //            _logger.LogInformation("SubTasks Updates Successfully. TaskId={TaskId}, Count={Count}", id, task.SubTasks.Count);
-//            var dynamotask = await _dynamo.LoadAsync<TodoTaskDynamo>(UserId,id.ToString(),ct);
+//            var dynamotask = await _dynamo.LoadAsync<TodoTaskDynamo>(UserId, id.ToString(), ct);
 //            if (dynamotask != null)
 //            {
 //                dynamotask.Title = req.tname;
@@ -98,7 +98,7 @@
 //                await _dynamo.SaveAsync(dynamotask, ct);
 //                _logger.LogInformation("Task updated in DynamoDB. TaskId={TaskId}", id);
 //            }
-//            try 
+//            try
 //            {
 //                var cosmostask = await _contain.ReadItemAsync<TodoTaskCosmos>(id: id.ToString(), partitionKey: new PartitionKey(UserId), cancellationToken: ct);
 //                if (cosmostask.Resource != null)
@@ -116,15 +116,15 @@
 //            {
 //                _logger.LogWarning("Task not found in CosmosDB during update. TaskId={TaskId}", id);
 //            }
-//            await _service.IndexOneTaskAsync(new ElasticIndexModel
-//            {
-//                Id = id.ToString(),
-//                Title = req.tname,
-//                Description = req.Description,
-//                Tags = req.Tags,
-//                CreatedAt = DateTime.UtcNow,
-//                IsCompleted = req.tisCompleted
-//            });
+//            //await _service.IndexOneTaskAsync(new ElasticIndexModel
+//            //{
+//            //    Id = id.ToString(),
+//            //    Title = req.tname,
+//            //    Description = req.Description,
+//            //    Tags = req.Tags,
+//            //    CreatedAt = DateTime.UtcNow,
+//            //    IsCompleted = req.tisCompleted
+//            //});
 //            _logger.LogInformation("Task Successfully re-indexed in Elasticsearch. TaskId={TaskId}", id);
 //            var response = new TaskModelDTO
 //            {
@@ -139,7 +139,7 @@
 //            };
 //            await _cachestore.EvictByTagAsync("task", ct);
 //            var cacheKey = $"task:{id}";
-//            await _redis.SetAsync(cacheKey, response, TimeSpan.FromMinutes(20));
+//            //await _redis.SetAsync(cacheKey, response, TimeSpan.FromMinutes(20));
 //            _logger.LogInformation("Cache refreshed. CacheKey={CacheKey}", cacheKey);
 //            _logger.LogInformation("UpdateTask completed successfully. TaskId={TaskId}", id);
 //            await HttpContext.Response.WriteAsJsonAsync(response, cancellationToken: ct);

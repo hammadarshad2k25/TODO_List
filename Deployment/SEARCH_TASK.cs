@@ -11,12 +11,12 @@ namespace TODO_List.Deployment
     public class SEARCH_TASK : Endpoint<SearchTaskRequest>
     {
         private readonly TodoDbContext _db;
-        private readonly IRedisService _redis;
+        //private readonly IRedisService _redis;
         private readonly ILogger<SEARCH_TASK> _logger;
-        public SEARCH_TASK(TodoDbContext db, IRedisService redis, ILogger<SEARCH_TASK> logger)
+        public SEARCH_TASK(TodoDbContext db, /*IRedisService redis,*/ ILogger<SEARCH_TASK> logger)
         {
             _db = db;
-            _redis = redis;
+            //_redis = redis;
             _logger = logger;
         }
         public override void Configure()
@@ -36,22 +36,21 @@ namespace TODO_List.Deployment
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? "admin";
             var cacheKey = $"task:{req.tid}";
             _logger.LogInformation("SearchTask started. TaskId={TaskId}, UserId={UserId}", req.tid, userId);
-            TaskModelDTO? cachedtask = null;    
+            //TaskModelDTO? cachedtask = null;    
             try
             {
-                cachedtask = await _redis.GetAsync<TaskModelDTO>(cacheKey);
+                //cachedtask = await _redis.GetAsync<TaskModelDTO>(cacheKey);
             }
             catch (Exception ex)
             {
                 _logger.LogWarning(ex, "Cache miss (Redis). TaskId={TaskId}", req.tid);
             }
-            if (cachedtask != null)
-            {
-                _logger.LogInformation("Cache hit (Redis). TaskId={TaskId}", req.tid);
-                await HttpContext.Response.WriteAsJsonAsync(cachedtask, cancellationToken: ct);
-                return;
-            }
-            
+            //if (cachedtask != null)
+            //{
+            //    _logger.LogInformation("Cache hit (Redis). TaskId={TaskId}", req.tid);
+            //    await HttpContext.Response.WriteAsJsonAsync(cachedtask, cancellationToken: ct);
+            //    return;
+            //}
             var task = await _db.Tasks.Include(st => st.SubTasks).FirstOrDefaultAsync(t => t.TaskId == req.tid, ct);
             if (task == null)
             {
@@ -73,7 +72,7 @@ namespace TODO_List.Deployment
                     subTaskName = st.SubTaskName
                 }).ToList()
             };
-            await _redis.SetAsync(cacheKey, response, TimeSpan.FromMinutes(20));
+            //await _redis.SetAsync(cacheKey, response, TimeSpan.FromMinutes(20));
             _logger.LogInformation("Task cached from SQL Server. CacheKey={CacheKey}", cacheKey);
             _logger.LogInformation("SearchTask completed successfully. TaskId={TaskId}", req.tid);
             await HttpContext.Response.WriteAsJsonAsync(response, cancellationToken: ct);

@@ -16,14 +16,14 @@ namespace TODO_List.Deployment
     public class UPDATE_TASK : Endpoint<UpdateTaskRequest>
     {
         private readonly TodoDbContext _db;
-        private readonly IRedisService _redis;
+        //private readonly IRedisService _redis;
         //private readonly ElasticService _service;
         private readonly IOutputCacheStore _cachestore;
         private readonly ILogger<UPDATE_TASK> _logger;
-        public UPDATE_TASK(TodoDbContext db, IRedisService redis, /*ElasticService service,*/ IOutputCacheStore cachestore, ILogger<UPDATE_TASK> logger)
+        public UPDATE_TASK(TodoDbContext db, /*IRedisService redis,*/ /*ElasticService service,*/ IOutputCacheStore cachestore, ILogger<UPDATE_TASK> logger)
         {
             _db = db;
-            _redis = redis;
+            //_redis = redis;
             //_service = service;
             _cachestore = cachestore;
             _logger = logger;
@@ -115,7 +115,7 @@ namespace TODO_List.Deployment
             var cacheKey = $"task:{id}";
             try
             {
-                await _redis.SetAsync(cacheKey, response, TimeSpan.FromMinutes(20));
+                //await _redis.SetAsync(cacheKey, response, TimeSpan.FromMinutes(20));
             }
             catch(Exception ex)
             {

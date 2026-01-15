@@ -14,13 +14,13 @@ namespace TODO_List.Deployment
     public class ADD_TASK : Endpoint<AddTaskRequest>
     {
         private readonly TodoDbContext _db;
-        private readonly IRedisService _redis;
+        //private readonly IRedisService _redis;
         //private readonly ElasticService _elastic;
         private readonly ILogger<ADD_TASK> _logger;
-        public ADD_TASK(TodoDbContext db, IRedisService redis, /*ElasticService elastic*/ ILogger<ADD_TASK> logger)
+        public ADD_TASK(TodoDbContext db, /*IRedisService redis,*/ /*ElasticService elastic*/ ILogger<ADD_TASK> logger)
         {
             _db = db;
-            _redis = redis;
+            //_redis = redis;
             //_elastic = elastic;
             _logger = logger;
         }
@@ -80,7 +80,7 @@ namespace TODO_List.Deployment
             _logger.LogInformation("Task indexed in Elasticsearch. TaskId={TaskId}", req.tid);
             try
             {
-                await _redis.SetAsync($"task:{response.Tid}", response, TimeSpan.FromMinutes(20));
+                //await _redis.SetAsync($"task:{response.Tid}", response, TimeSpan.FromMinutes(20));
             }
             catch(Exception ex)
             {

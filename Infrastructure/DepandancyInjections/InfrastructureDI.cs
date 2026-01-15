@@ -16,7 +16,7 @@ public static class InfrastructureDI
             };
             return ConnectionMultiplexer.Connect(config);
         });
-        services.AddScoped<IRedisService,RedisService>();
+        //services.AddScoped<IRedisService,RedisService>();
         services.Scan(scan => scan
             .FromAssemblyOf<InfrastructureAssemblyMarker>()
             .AddClasses(c => c.InNamespaces("TODO_List.Infrastructure.Repositories"))

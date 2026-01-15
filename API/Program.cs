@@ -30,6 +30,7 @@ using System.Net.Mail;
 using Serilog.Formatting.Display;
 using Serilog.Events;
 using TODO_List.Alerts;
+using Npgsql;
 
 // ----------------------------
 // Email configuration
@@ -162,7 +163,7 @@ builder.Services.AddOutputCache(options =>
 builder.Services.AddResponseCaching();
 
 // --------------------------------------------------
-// SQL DATABASE
+// postgresql DATABASE
 // --------------------------------------------------
 var connection = Environment.GetEnvironmentVariable("CONNECTION_STRING") ?? builder.Configuration.GetConnectionString("DefaultConnection");
 builder.Services.AddDbContext<TodoDbContext>(opts =>
