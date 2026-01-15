@@ -165,9 +165,15 @@ builder.Services.AddResponseCaching();
 // --------------------------------------------------
 // postgresql DATABASE
 // --------------------------------------------------
-var connectionString =
-    Environment.GetEnvironmentVariable("DATABASE_URL")
-    ?? builder.Configuration.GetConnectionString("DefaultConnection");
+// Step 1: Get the raw URL from Railway
+var databaseUrl = Environment.GetEnvironmentVariable("DATABASE_URL");
+
+// Step 2: Parse it
+var uri = new Uri(databaseUrl);
+var userInfo = uri.UserInfo.Split(':');
+
+// Step 3: Convert to Npgsql connection string
+var connectionString = $"Host={uri.Host};Port={uri.Port};Username={userInfo[0]};Password={userInfo[1]};Database={uri.AbsolutePath.TrimStart('/')};Pooling=true;SSL Mode=Require;Trust Server Certificate=true";
 
 builder.Services.AddDbContext<TodoDbContext>(options =>
     options.UseNpgsql(connectionString, npgsql =>
