@@ -187,7 +187,7 @@ builder.Services.AddScoped<NHibernate.ISession>(provider =>
 // --------------------------------------------------
 builder.Services.AddApplication();
 builder.Services.AddInfrastructure();
-builder.Services.AddSingleton<ElasticService>();
+//builder.Services.AddSingleton<ElasticService>();
 
 // --------------------------------------------------
 // GLOBAL FILTERS FOR CONTROLLERS
@@ -242,8 +242,8 @@ builder.Services.AddSignalR();
 // --------------------------------------------------
 // Aws Credentials for DynamoDB
 // --------------------------------------------------
-builder.Services.AddSingleton<IAmazonDynamoDB>(_ =>
-{
+////builder.Services.AddSingleton<IAmazonDynamoDB>(_ =>
+//{
     // LOCAL OR TEST DYNAMO (COMMENTED FOR RAILWAY)
     // var config = new AmazonDynamoDBConfig
     // {
@@ -254,8 +254,8 @@ builder.Services.AddSingleton<IAmazonDynamoDB>(_ =>
     // return new AmazonDynamoDBClient(new BasicAWSCredentials("dummy", "dummy"), config);
 
     // PRODUCTION RAILWAY ENV VARS CAN GO HERE
-    return null!;
-});
+    ////return null!;
+//});
 
 //builder.Services.AddScoped<IDynamoDBContext>(provider =>
 //{
